@@ -1,0 +1,67 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:showIn="@layout/activity_main"
+    android:id="@+id/entire_view">
+
+    <com.orbotix.calibration.api.CalibrationImageButtonView
+        android:id="@+id/calibrateButton"
+        android:visibility="visible"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:background="#00000000"
+        android:scaleType="centerInside"
+        android:layout_marginBottom="10dp"
+        app:widget_orientation="above"
+        app:foreground_color="#FFFFFFFF"
+        app:background_color="#FF1990FF"
+        app:calibration_circle_radius="50dp"
+        app:calibration_center_x = "30dp"
+        app:calibration_center_y = "-30dp"
+        android:layout_alignParentEnd="false"
+        android:layout_alignParentStart="true" />
+
+    <!-- The joystick view for the application -->
+    <com.orbotix.joystick.api.JoystickView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:id="@+id/joystickView"
+        android:visibility="visible"
+        app:puck_radius="60dp"
+        app:edge_overlap="10dp"
+        app:alpha="0.9"
+        android:clickable="false"
+        android:focusableInTouchMode="false"
+        android:focusable="false"
+        android:layout_above="@+id/calibrateButton" />
+
+    <Button
+        android:id="@+id/colorPickerButton"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="#FFFFFF"
+        />
+
+    <!-- This needs to be the last element in your xml page if you want two finger calibration to work
+     anywhere in your application's page -->
+    <com.orbotix.calibration.api.CalibrationView
+        android:id="@+id/calibrationView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        app:twoFingerEnabled="true"
+        />
+    <FrameLayout
+        android:id="@+id/fragment_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:id="@+id/game_vitesse"/>
+</RelativeLayout>
+

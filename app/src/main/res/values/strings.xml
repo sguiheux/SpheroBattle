@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">SpheroBattle</string>
+    <string name="main_button_start">Start</string>
+    <string name="main_button_quit">Exit</string>
+    <string name="calibration_title">Calibration</string>
+    <string name="ollie">OLLIE</string>
+    <string name="sphero">SPHERO</string>
+    <string name="robot_picker_dialog_prompt">Quel robot utilisez-vous ?</string>
+    <string name="color_picker_title">Color Picker</string>
+    <string name="done_button_text">DONE</string>
+</resources>
