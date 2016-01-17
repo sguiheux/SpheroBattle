@@ -7,59 +7,46 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.io.StreamCorruptedException;
 
-public class Message {
+public class Message implements Serializable{
     public TypeMessage type;
     public String data;
+    public long ts;
+    public double speed;
+    public int result;
+
+    public static void main(String... a){
+        Message msg = new Message();
+        msg.type = TypeMessage.PRESENCE;
+        msg.data = "1";
+        System.out.println(toByte(msg));
+    }
 
     public static byte[] toByte(Message msg) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutput out = null;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream os = null;
         try {
-            out = new ObjectOutputStream(bos);
-            out.writeObject(msg);
-            return bos.toByteArray();
-        } catch (Exception e) {
-            return null;
-        } finally {
-            try {
-                if (out != null) {
-                    out.close();
-                }
-            } catch (IOException ex) {
-                // ignore close exception
-            }
-            try {
-                bos.close();
-            } catch (IOException ex) {
-                // ignore close exception
-            }
+            os = new ObjectOutputStream(out);
+            os.writeObject(msg);
+            return out.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     public static Message toMessage(byte[] b){
-        ByteArrayInputStream bis = new ByteArrayInputStream(b);
-        ObjectInput in = null;
+        ByteArrayInputStream in = new ByteArrayInputStream(b);
+        ObjectInputStream is = null;
         try {
-            in = new ObjectInputStream(bis);
-            return (Message) in.readObject();
+            is = new ObjectInputStream(in);
+            return (Message) is.readObject();
         } catch (Exception e) {
-            return null;
-        }  finally {
-            try {
-                bis.close();
-            } catch (IOException ex) {
-                // ignore close exception
-            }
-            try {
-                if (in != null) {
-                    in.close();
-                }
-            } catch (IOException ex) {
-                // ignore close exception
-            }
+            e.printStackTrace();
         }
+        return null;
 
     }
 }

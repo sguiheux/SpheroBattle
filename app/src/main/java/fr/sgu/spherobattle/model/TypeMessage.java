@@ -1,7 +1,9 @@
 package fr.sgu.spherobattle.model;
 
-public enum TypeMessage {
+import java.io.Serializable;
+
+public enum TypeMessage implements Serializable {
 
     PRESENCE,
-    COLLISION
+    RESULT, COLLISION
 }

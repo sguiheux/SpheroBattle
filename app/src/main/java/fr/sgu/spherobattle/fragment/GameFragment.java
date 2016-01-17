@@ -43,10 +43,12 @@ import com.orbotix.subsystem.SensorControl;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import de.keyboardsurfer.android.widget.crouton.Crouton;
 import de.keyboardsurfer.android.widget.crouton.Style;
 import fr.sgu.spherobattle.R;
+import fr.sgu.spherobattle.model.Message;
 
 public class GameFragment extends Fragment implements RobotPickerDialog.RobotPickerListener, DiscoveryAgentEventListener, RobotChangedStateListener {
 
@@ -71,6 +73,9 @@ public class GameFragment extends Fragment implements RobotPickerDialog.RobotPic
     //Robot connected
     private ConvenienceRobot mRobot;
 
+    private double currentSpeed;
+    private Map<Long,Double> mapCollision;
+
 
     /**
      * Creation du fragment.
@@ -85,8 +90,6 @@ public class GameFragment extends Fragment implements RobotPickerDialog.RobotPic
         setupColorPicker(rootView);
 
         broadcaster.connectAndLaunchMulti();
-
-        chooseRobot();
 
         return rootView;
     }
@@ -193,6 +196,8 @@ public class GameFragment extends Fragment implements RobotPickerDialog.RobotPic
     public void start() {
         if (spheroConnected) {
             broadcaster.sendReady();
+        } else {
+            chooseRobot();
         }
     }
 
@@ -283,6 +288,7 @@ public class GameFragment extends Fragment implements RobotPickerDialog.RobotPic
                 }
                 broadcaster.sendReady();
                 toggleControl();
+                init();
                 break;
             case Disconnected:
                 spheroConnected = false;
@@ -314,14 +320,15 @@ public class GameFragment extends Fragment implements RobotPickerDialog.RobotPic
             @Override
             public void handleAsyncMessage(AsyncMessage asyncMessage, Robot robot) {
                 if (asyncMessage instanceof CollisionDetectedAsyncData) {
-
+                    mapCollision.put(((CollisionDetectedAsyncData) asyncMessage).getImpactTimeStamp(),currentSpeed);
+                    broadcaster.sendCollision(((CollisionDetectedAsyncData) asyncMessage).getImpactTimeStamp(), currentSpeed);
                 } else if (asyncMessage instanceof DeviceSensorAsyncMessage) {
                     if (((DeviceSensorAsyncMessage) asyncMessage).getAsyncData() != null) {
                         LocatorData locatorData = ((DeviceSensorAsyncMessage) asyncMessage).getAsyncData().get(0).getLocatorData();
                         float speedX = locatorData.getVelocityX();
                         float speedY = locatorData.getVelocityY();
-                        double speed = Math.sqrt(Math.pow(speedX, 2) + Math.pow(speedY, 2));
-                        vitesseTV.setText(speed+" cm/s");
+                        currentSpeed = Math.sqrt(Math.pow(speedX, 2) + Math.pow(speedY, 2));
+                        vitesseTV.setText(currentSpeed+" cm/s");
                     }
                 }
             }
@@ -329,9 +336,51 @@ public class GameFragment extends Fragment implements RobotPickerDialog.RobotPic
 
     }
 
+    public void receiveCollision(Message msg) {
+        for(Map.Entry<Long,Double> entry : mapCollision.entrySet()){
+            if(entry.getKey() < msg.ts - 200){
+                // old valueremove it
+                mapCollision.remove(entry.getKey());
+                return;
+            }
+            if(entry.getKey() > msg.ts + 200 ){
+
+            } else {
+                // COmpare vitesse
+                if (msg.speed > entry.getValue()){
+                    Crouton.makeText(getActivity(),"You die",Style.ALERT).show();
+                    broadcaster.sendResult(1);
+                    // emeeur win
+                } else if (msg.speed < entry.getValue()) {
+                    // receiver win
+                    Crouton.makeText(getActivity(),"You win",Style.CONFIRM).show();
+                    broadcaster.sendResult(-1);
+                } else {
+                    // draw
+                    Crouton.makeText(getActivity(),"Draw",Style.INFO).show();
+                    broadcaster.sendResult(0);
+                }
+            }
+        }
+    }
+
+    public void receiveResult(Message msg) {
+        if (msg.result == 0){
+            Crouton.makeText(getActivity(),"Draw",Style.INFO);
+        } else if(msg.result == 1){
+            Crouton.makeText(getActivity(),"You win",Style.CONFIRM);
+        } else {
+            Crouton.makeText(getActivity(),"You die",Style.ALERT);
+        }
+    }
+
     public interface OnGameFragmentListener {
         void connectAndLaunchMulti();
 
         void sendReady();
+
+        void sendCollision(long ts,double speed);
+
+        void sendResult(int result);
     }
 }

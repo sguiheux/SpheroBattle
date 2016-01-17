@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity implements RealTimeMessageRe
                 .addApi(Games.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
+                .setViewForPopups(findViewById(android.R.id.content))
                 .build();
 
         // Check Permission
@@ -151,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements RealTimeMessageRe
     @Override
     public void onConnected(Bundle bundle) {
         Crouton.makeText(this, "Connected to Google Play service", Style.INFO).show();
+        launchMulti();
     }
 
     @Override
@@ -196,6 +198,37 @@ public class MainActivity extends AppCompatActivity implements RealTimeMessageRe
                     Message msg = new Message();
                     msg.type = TypeMessage.PRESENCE;
                     msg.data = "1";
+                    Games.RealTimeMultiplayer.sendReliableMessage(googleApiClient, null, Message.toByte(msg),
+                            mRoomId, p.getParticipantId());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void sendCollision(long ts, double speed) {
+        if(mRoom != null){
+            for (Participant p : mRoom.getParticipants()) {
+                if (!p.getParticipantId().equals(myParticipantId)) {
+                    Message msg = new Message();
+                    msg.type = TypeMessage.COLLISION;
+                    msg.speed = speed;
+                    msg.ts = ts;
+                    Games.RealTimeMultiplayer.sendReliableMessage(googleApiClient, null, Message.toByte(msg),
+                            mRoomId, p.getParticipantId());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void sendResult(int result) {
+        if(mRoom != null){
+            for (Participant p : mRoom.getParticipants()) {
+                if (!p.getParticipantId().equals(myParticipantId)) {
+                    Message msg = new Message();
+                    msg.result = result;
+                    msg.type = TypeMessage.RESULT;
                     Games.RealTimeMultiplayer.sendReliableMessage(googleApiClient, null, Message.toByte(msg),
                             mRoomId, p.getParticipantId());
                 }
@@ -275,7 +308,12 @@ public class MainActivity extends AppCompatActivity implements RealTimeMessageRe
                         ((GameFragment) f).opponentReady();
                         break;
                     case COLLISION:
+                        ((GameFragment) f).receiveCollision(msg);
                         break;
+                    case RESULT:
+                        ((GameFragment) f).receiveResult(msg);
+                        break;
+
                 }
             }
         }
